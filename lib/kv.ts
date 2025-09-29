@@ -1,4 +1,4 @@
-import { MiniAppNotificationDetails } from "@farcaster/miniapp-sdk";
+import type { MiniAppNotificationDetails } from "@farcaster/miniapp-sdk";
 import { Redis } from "@upstash/redis";
 
 const redis = new Redis({

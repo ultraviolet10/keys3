@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useFrame } from "@/components/farcaster-provider";
-import { MiniAppNotificationDetails } from "@farcaster/miniapp-core";
+import type { MiniAppNotificationDetails } from "@farcaster/miniapp-core";
 
 export function NotificationActions() {
   const { context, actions } = useFrame();

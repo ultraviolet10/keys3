@@ -1,9 +1,10 @@
 import {
-    ParseWebhookEvent,
+    type ParseWebhookEvent,
     parseWebhookEvent,
+    type ParseWebhookEventResult,
     verifyAppKeyWithNeynar,
   } from "@farcaster/miniapp-node";
-  import { NextRequest } from "next/server";
+  import type { NextRequest } from "next/server";
   import {
     deleteUserNotificationDetails,
     setUserNotificationDetails,
@@ -13,7 +14,7 @@ import {
   export async function POST(request: NextRequest) {
     const requestJson = await request.json();
   
-    let data;
+    let data: ParseWebhookEventResult;
     try {
       data = await parseWebhookEvent(requestJson, verifyAppKeyWithNeynar);
     } catch (e: unknown) {

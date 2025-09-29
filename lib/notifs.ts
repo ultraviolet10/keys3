@@ -1,6 +1,6 @@
 import { APP_URL } from "@/lib/constants";
 import {
-  SendNotificationRequest,
+  type SendNotificationRequest,
   sendNotificationResponseSchema,
 } from "@farcaster/miniapp-sdk";
 import { getUserNotificationDetails } from "./kv";
@@ -47,6 +47,7 @@ export async function sendFrameNotification({
 
   if (response.status === 200) {
     const responseBody = sendNotificationResponseSchema.safeParse(responseJson);
+    // [uv1000] it's parsing the status as 200, but success as false. seems like a little chutzpah?
     if (responseBody.success === false) {
       // Malformed response
       return { state: "error", error: responseBody.error.errors };
@@ -58,6 +59,7 @@ export async function sendFrameNotification({
     }
 
     return { state: "success" };
+  // biome-ignore lint/style/noUselessElse: i'm not thoroughly convinced that this is truly unreachable
   } else {
     // Error response
     return { state: "error", error: responseJson };
