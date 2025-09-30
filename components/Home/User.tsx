@@ -1,5 +1,4 @@
 import { useFrame } from '@/components/farcaster-provider'
-import Image from 'next/image'
 
 export function User() {
   const { context } = useFrame()
@@ -11,7 +10,7 @@ export function User() {
         {context?.user ? (
           <>
             {context?.user?.pfpUrl && (
-              <Image
+              <img
                 src={context?.user?.pfpUrl}
                 className="w-14 h-14 rounded-full"
                 alt="User Profile"

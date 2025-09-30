@@ -1,5 +1,4 @@
 import { ImageResponse } from '@vercel/og';
-import Image from 'next/image';
 import type { NextRequest } from 'next/server';
 
 export const dynamic = "force-dynamic";
@@ -59,7 +58,7 @@ export async function GET(request: NextRequest) {
               }}
             >
               {imageUrl ? (
-                <Image
+                <img
                   src={imageUrl}
                   alt={username}
                   style={{
