@@ -1,13 +1,15 @@
 # Piano Tiles Game - Technical Specification
 
 ## Overview
+
 A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay with onchain rewards integration. The game features continuously rolling tiles that players must tap in sequence, with progressive difficulty and social sharing capabilities.
 
 ## Architecture Decisions
 
 ### 1. Viewport & Layout Strategy
+
 - **Container**: Use existing `SafeAreaContainer` with viewport-relative units
-- **Layout Distribution**: 
+- **Layout Distribution**:
   - Header: 10% max viewport height (multiplier overlay)
   - Game Area: 80% viewport height (rolling tiles)
   - Footer: 10% max viewport height (lives + progress)
@@ -15,9 +17,11 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
 - **Farcaster Chrome**: ~100px top header accounted for via SafeAreaContainer margins
 
 ### 2. State Management Architecture
+
 - **Library**: Zustand v5.0.8 (already installed)
 - **Store Pattern**: Single centralized game store
 - **State Structure**:
+
   ```typescript
   interface GameState {
     // Core game state
@@ -43,6 +47,7 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
   ```
 
 ### 3. Rolling Mechanism & Performance
+
 - **Animation Strategy**: CSS transforms (`translateY`) for 60fps performance
 - **Object Pooling**: Maintain pool of 20-30 reusable tile components
 - **Lifecycle Management**: IntersectionObserver for viewport entry/exit detection
@@ -50,6 +55,7 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
 - **Movement Pattern**: Tiles move downward via requestAnimationFrame loop
 
 ### 4. Touch Interaction System
+
 - **Event Strategy**: Single event delegation handler on game container
 - **Precision Method**: Coordinate mapping to determine column + active tile
 - **Touch Targets**: Minimum 44px height per Apple guidelines
@@ -59,10 +65,11 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
 ## Component Architecture
 
 ### File Structure
+
 ```
 components/
 ├── Game/
-│   ├── PianoTilesGame.tsx       # Main game container & orchestration
+│   ├── GameScreen.tsx       # Main game container & orchestration
 │   ├── GameHeader.tsx           # Multiplier display (absolute positioned)
 │   ├── TileGrid.tsx             # 4-column game area with touch handling
 │   ├── Tile.tsx                 # Individual tile component (pooled)
@@ -77,30 +84,35 @@ components/
 
 ### Component Responsibilities
 
-#### PianoTilesGame (Main Container)
+#### GameScreen (Main Container)
+
 - Replace existing Demo component in app.tsx
 - Orchestrate game lifecycle (start/pause/end)
 - Provide game context to child components
 - Handle overall layout and SafeAreaContainer integration
 
 #### TileGrid (Game Area)
+
 - CSS Grid: 4 equal columns, full game area height
 - Single touch event handler with coordinate mapping
 - Manage tile pool rendering and positioning
 - IntersectionObserver setup for performance optimization
 
 #### Tile (Atomic Component)
+
 - Memoized component for performance
 - CSS transform positioning (translateY)
 - Visual states: active, tapped, missed
 - Recycling-friendly (resetable properties)
 
 #### GameHeader (Overlay)
+
 - Position: absolute, top-0, left-0, z-index: 10
 - Display: current multiplier
 - Minimal UI footprint (single floating element)
 
 #### GameFooter (Status Bar)
+
 - Lives indicator (heart icons or numeric)
 - Progress percentage (0-100%)
 - Fixed height container with flex layout
@@ -108,16 +120,19 @@ components/
 ## Performance Specifications
 
 ### Memory Management
+
 - **DOM Node Limit**: Maximum 50 active elements
 - **Tile Pool Size**: 20-30 tiles in constant rotation
 - **Cleanup Strategy**: IntersectionObserver triggers immediate recycling
 
 ### Animation Performance
+
 - **Target FPS**: 60fps via requestAnimationFrame
 - **GPU Acceleration**: CSS transforms only (no layout thrashing)
 - **Smooth Movement**: Linear interpolation for tile positions
 
 ### Touch Response
+
 - **Touch Latency**: <50ms from touchstart to visual feedback
 - **Event Optimization**: Single delegated handler, no event bubbling
 - **Accuracy**: Column detection via coordinate division
@@ -125,12 +140,14 @@ components/
 ## Game Mechanics
 
 ### Difficulty Progression
+
 - **Initial Speed**: Slow tile descent (2-3 seconds viewport transit)
 - **Speed Increase**: Every 10-20 successful taps
 - **Lives System**: 3-5 lives, lose one per missed/wrong tap
 - **Scoring**: Points per successful tap, multiplier bonuses
 
 ### Tile Generation
+
 - **Pattern**: Pre-generated sequence for consistent gameplay
 - **Spawning**: Tiles appear at top, one active tile per column at a time
 - **Timing**: Rhythmic pattern matching (future audio sync point)
@@ -138,11 +155,13 @@ components/
 ## Integration Points
 
 ### Farcaster Integration
+
 - **User Context**: Leverage existing user data for personalization
 - **Score Sharing**: Custom OG images via existing `/api/og` route
 - **Social Features**: Leaderboards, achievements, challenges
 
 ### Future Expansion Areas
+
 - **Audio System**: Background music + sound effects
 - **Onchain Rewards**: Token distribution for high scores
 - **Backend Services**: Score persistence, global leaderboards
@@ -151,24 +170,28 @@ components/
 ## Development Phases
 
 ### Phase 1: Core UI Scaffold
+
 1. Create basic component structure
 2. Implement static layout (header/game/footer)
 3. Setup Zustand store with initial state
-4. Replace Demo component with PianoTilesGame
+4. Replace Demo component with GameScreen
 
 ### Phase 2: Game Mechanics
+
 1. Implement tile pool and recycling system
 2. Add CSS transform-based movement
 3. Create touch handling with coordinate mapping
 4. Basic game loop (start/pause/restart)
 
 ### Phase 3: Polish & Performance
+
 1. IntersectionObserver integration
 2. Haptic feedback integration
 3. Visual polish and animations
 4. Performance testing and optimization
 
 ### Phase 4: Integration Features
+
 1. Score sharing via Farcaster actions
 2. User progress persistence
 3. Custom OG image generation
@@ -177,12 +200,14 @@ components/
 ## Technical Constraints
 
 ### Mobile Optimization
+
 - **Viewport Support**: 320px - 430px width range
 - **Touch Targets**: Minimum 44px tap areas
 - **Performance**: 60fps on mid-range mobile devices
 - **Battery**: Optimized for extended gameplay sessions
 
 ### Farcaster Miniapp Limitations
+
 - **Container Size**: Restricted viewport within Farcaster app
 - **Navigation**: No browser back/forward, contained experience
 - **Performance**: Shared resources with host app
@@ -190,12 +215,14 @@ components/
 ## Testing Strategy
 
 ### Performance Testing
+
 - Chrome DevTools Performance profiling
 - Memory usage monitoring (heap snapshots)
 - Frame rate measurement during extended gameplay
 - Touch latency testing across devices
 
 ### Gameplay Testing
+
 - Touch accuracy across different screen sizes
 - Game balance (difficulty progression)
 - Edge cases (rapid tapping, multi-touch)
@@ -203,4 +230,217 @@ components/
 
 ---
 
-*This specification is subject to iteration as we learn and implement each component. Architecture decisions will be validated through prototyping and testing.*
+## Implementation Progress Log
+
+### Session 1: Foundation & Core Gameplay (Current)
+
+#### ✅ Completed: Navigation & Route Structure
+
+- **Game Route**: Created `/game` route with proper Farcaster frame metadata
+- **Navigation**: Added "Play Piano Tiles 🎹" button from home page using Next.js router
+- **Layout Integration**: Game page uses existing SafeAreaContainer pattern
+
+#### ✅ Completed: Core Game Architecture
+
+**Component Structure**:
+
+```typescript
+// Single-file implementation for rapid prototyping
+components/Game/GameScreen.tsx
+├── TileRow interface with status tracking
+├── Local state management (pre-Zustand)
+├── Animation loop with requestAnimationFrame
+└── Touch/click event handling
+```
+
+**Key Technical Implementation**:
+
+- **TileRow Interface**: `{ id, y, activeColumn, status: 'pending'|'tapped'|'missed' }`
+- **Game State**: Lives (3), Score (0), Status ('playing') - local useState for now
+- **Layout Strategy**: CSS Grid 4 columns, 10vh header + 80vh game + 10vh footer
+
+#### ✅ Completed: Movement System
+
+**Animation Architecture**:
+
+- **Speed**: 200px/second (3.2s viewport transit time)
+- **Spawn Logic**: Seamless rows with zero gaps (`y: topMostTile.y - 80`)
+- **Cleanup**: Auto-remove tiles past 700px Y position
+- **Frame Rate**: 60fps via requestAnimationFrame with deltaTime calculations
+
+**Critical Bug Fixed**: Empty array handling in tile spawning reduce function
+
+#### ✅ Completed: Touch Interaction
+
+**Precision Touch System**:
+
+- **Event Delegation**: Single handler on game container for performance
+- **Cross-Platform**: Unified TouchEvent/MouseEvent handling
+- **Coordinate Mapping**: Screen coords → game grid (column 0-3, Y position)
+- **Hit Detection**: Precise black tile validation with Y bounds checking
+- **Visual Feedback**: Pending (black) → Tapped (blue) → Missed (red)
+
+**Game Logic**:
+
+- **Successful Tap**: +10 score, tile turns blue
+- **Missed Tap**: -1 life on white space tap
+- **Game Over**: Lives reach 0, status updates to 'gameOver'
+
+#### 🎯 Current Working State
+
+**Fully Functional Game**:
+
+- Continuous tile flow with seamless rows
+- Precise touch detection on black tiles only
+- Real-time score/lives tracking
+- Visual feedback system
+- Cross-platform compatibility (mobile + desktop)
+
+### Next Session Priorities
+
+#### 🔄 State Management Migration
+
+**Zustand Integration** (High Priority):
+
+- Migrate from local useState to centralized Zustand store
+- Implement proper game state actions and selectors
+- Add auto-miss detection for tiles that pass untapped
+- Performance optimization with state subscriptions
+
+#### 🎨 Visual Polish & UX
+
+**Enhanced Feedback**:
+
+- Haptic integration using existing `components/Home/Haptics.tsx`
+- Tile animations (flash, shrink, disappear effects)
+- Game over modal with restart functionality
+- Score progression indicators
+
+#### ⚡ Performance Optimization
+
+**Object Pooling Implementation**:
+
+- Limit DOM nodes to 20-30 tile pool
+- Tile recycling system for memory efficiency
+- IntersectionObserver for viewport management
+- Frame rate monitoring and optimization
+
+#### 🎵 Audio Integration (Future)
+
+**Sound System Architecture**:
+
+- Background music integration
+- Tap sound effects
+- Beat-synchronized tile spawning
+- Audio asset management strategy
+
+### Technical Debt & Refactoring Notes
+
+#### Code Organization
+
+- **Single File**: Current implementation in one component for rapid prototyping
+- **Future Split**: Move to modular architecture per original specification
+- **Custom Hooks**: Extract game logic into reusable hooks
+
+#### Performance Monitoring
+
+- **Current**: Basic requestAnimationFrame loop
+- **Needed**: FPS monitoring, memory tracking, performance metrics
+
+#### State Architecture
+
+- **Current**: Local React state (temporary)
+- **Target**: Zustand store with proper actions/selectors
+- **Migration**: Gradual refactor to maintain working state
+
+### Session 2: Zustand State Management Migration (Completed)
+
+#### ✅ Completed: Modular Zustand Architecture
+
+**Store Structure**:
+
+```md
+lib/store/
+├── index.ts          # Single import point: useGameStore, selectors, types
+├── types.ts          # GameState, GameActions, TileRow interfaces
+├── constants.ts      # GAME_SPEED, TILE_HEIGHT, thresholds
+├── initialState.ts   # Default game state with initial tiles
+├── actions.ts        # All game actions with Immer middleware
+├── gameStore.ts      # Main store creation with Immer
+└── selectors.ts      # Performance-optimized selector hooks
+```
+
+#### ✅ Completed: Performance-Optimized Actions
+
+**Key Features**:
+
+- **Game State Validation**: All actions only run when `game.status === 'playing'`
+- **O(n) Performance**: Replaced `findIndex` with `for` loops + early breaks
+- **Proper Immer Usage**: Fixed TypeScript void return errors
+- **Atomic Updates**: Single store updates, no race conditions
+
+#### ✅ Completed: Component Integration
+
+**Migration Results**:
+
+- **Removed all useState**: Eliminated duplicate state completely
+- **Selective Subscriptions**: Components only re-render on relevant state changes
+- **Clean Imports**: Single import from `@/lib/store` for all game functionality
+- **Auto-Miss Detection**: Advanced game logic with tile lifecycle management
+
+#### 🎯 Current Technical State
+
+**Fully Functional Zustand-Powered Game**:
+
+- Continuous seamless tile flow with 200px/s speed
+- Precise touch detection with coordinate mapping
+- Real-time scoring with multiplier system (3 lives, auto-miss, game over)
+- Cross-platform compatibility (mobile touch + desktop click)
+- Performance optimized with O(n) algorithms and selective subscriptions
+
+### Next Session Priorities
+
+#### 🎨 **Visual Polish & UX Enhancement**
+
+- Game over modal with restart functionality
+- Haptic feedback integration (`components/Home/Haptics.tsx`)
+- Tile animations (flash, shrink, disappear effects)
+- Score progression and achievement indicators
+
+#### 🎵 **Audio System Integration**
+
+- Background music with beat synchronization
+- Tap sound effects with audio feedback
+- Rhythm-based tile spawning (replace random pattern)
+- Audio asset management and performance optimization
+
+#### 🔧 **Advanced Game Features**
+
+- Progressive difficulty with speed increases
+- Combo system and score multipliers
+- Persistent high score storage
+- Game pause/resume functionality
+
+### Zustand Architecture Quick Reference
+
+**Store Usage Patterns**:
+
+```typescript
+// Selective subscriptions (performance optimized)
+const tiles = useGameTiles()                    // Only tiles
+const { score, lives } = usePlayerStats()       // Only player stats
+const gameStatus = useGameStatus()              // Only game status
+
+// Action usage
+const { tapTile, resetGame } = useGameActions() // Game actions
+```
+
+**Performance Notes**:
+
+- All actions validate `game.status === 'playing'` before execution
+- Tile operations use `for` loops with early breaks for O(n) performance
+- Single source of truth eliminates state synchronization issues
+
+---
+
+*Implementation log updated after each session. Next session: Focus on visual polish and audio integration.*
