@@ -1,35 +1,25 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-
-interface TileRow {
-	id: number
-	y: number // Y position in pixels
-	activeColumn: number // Which column (0-3) has the black tile
-	status: "pending" | "tapped" | "missed" // Track tile interaction state
-}
+import { useCallback, useEffect, useRef, useState } from "react"
+import { GAME_SPEED, TILE_HEIGHT } from "@/lib/store/constants"
+import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
+import GameInfo from "./game-info"
 
 export function GameScreen() {
-	// Game constants
-	const GAME_SPEED = 200 // pixels per second
-	const TILE_HEIGHT = 80
-
 	// Game state - TODO: Replace with Zustand store later
 	const [lives, setLives] = useState(3)
 	const [score, setScore] = useState(0)
-	const [gameStatus, setGameStatus] = useState<
-		"idle" | "playing" | "paused" | "gameOver"
-	>("playing")
+	const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.PLAYING)
 
 	// TODO: Replace with Zustand store - this is temporary local state for testing
 	const [tileRows, setTileRows] = useState<TileRow[]>([
-		{ id: 1, y: 0, activeColumn: 0, status: "pending" }, // Row 1: black tile in column 0
-		{ id: 2, y: 80, activeColumn: 1, status: "pending" }, // Row 2: black tile in column 1
-		{ id: 3, y: 160, activeColumn: 3, status: "pending" }, // Row 3: black tile in column 3
-		{ id: 4, y: 240, activeColumn: 2, status: "pending" }, // Row 4: black tile in column 2
-		{ id: 5, y: 320, activeColumn: 1, status: "pending" }, // Row 5: black tile in column 1
-		{ id: 6, y: 400, activeColumn: 0, status: "pending" }, // Row 6: black tile in column 0
-		{ id: 7, y: 480, activeColumn: 0, status: "pending" }, // Row 6: black tile in column 0
+		{ id: 1, y: 0, activeColumn: 0, status: TileInteractionStatus.PENDING }, // Row 1: black tile in column 0
+		{ id: 2, y: 80, activeColumn: 1, status: TileInteractionStatus.PENDING }, // Row 2: black tile in column 1
+		{ id: 3, y: 160, activeColumn: 3, status: TileInteractionStatus.PENDING }, // Row 3: black tile in column 3
+		{ id: 4, y: 240, activeColumn: 2, status: TileInteractionStatus.PENDING }, // Row 4: black tile in column 2
+		{ id: 5, y: 320, activeColumn: 1, status: TileInteractionStatus.PENDING }, // Row 5: black tile in column 1
+		{ id: 6, y: 400, activeColumn: 0, status: TileInteractionStatus.PENDING }, // Row 6: black tile in column 0
+		{ id: 7, y: 480, activeColumn: 0, status: TileInteractionStatus.PENDING }, // Row 6: black tile in column 0
 	])
 
 	// Animation loop refs
@@ -39,7 +29,6 @@ export function GameScreen() {
 	const gameAreaRef = useRef<HTMLElement>(null) // Reference to game area for coordinate mapping
 
 	// Animation loop
-	// biome-ignore lint/correctness/useExhaustiveDependencies: i'll study it all in a bit
 	useEffect(() => {
 		const gameLoop = (timestamp: number) => {
 			// Calculate delta time in seconds
@@ -68,7 +57,7 @@ export function GameScreen() {
 						id: nextIdRef.current++,
 						y: topMostTile ? topMostTile.y - 80 : -80, // Position above topmost tile or start fresh
 						activeColumn: Math.floor(Math.random() * 4), // Random column for now
-						status: "pending", // All new tiles start as pending
+						status: TileInteractionStatus.PENDING, // All new tiles start as pending
 					}
 					updatedRows.unshift(newTile) // Add to beginning of array
 				}
@@ -89,20 +78,26 @@ export function GameScreen() {
 				cancelAnimationFrame(animationIdRef.current)
 			}
 		}
-	}, [GAME_SPEED])
+	}, [])
 
-	// Touch/Click event handling
-	const extractCoordinates = (e: React.TouchEvent | React.MouseEvent) => {
-		if ("touches" in e) {
-			// Mobile touch
-			return { x: e.touches[0].clientX, y: e.touches[0].clientY }
-		} else {
-			// Desktop click
-			return { x: e.clientX, y: e.clientY }
-		}
-	}
+	/**
+	 * [uv1000] should we be using so many useCallbacks here?
+	 * my mental model with useCallback is writing it as a function that triggers only when one of the deps changes
+	 */
+	const extractCoordinates = useCallback(
+		(e: React.TouchEvent | React.MouseEvent) => {
+			// something something typeof?
+			if ("touches" in e) {
+				return { x: e.touches[0].clientX, y: e.touches[0].clientY }
+			} else {
+				// Desktop click
+				return { x: e.clientX, y: e.clientY }
+			}
+		},
+		[],
+	)
 
-	const getGameCoordinates = (screenX: number, screenY: number) => {
+	const getGameCoordinates = useCallback((screenX: number, screenY: number) => {
 		if (!gameAreaRef.current) return null
 
 		const gameArea = gameAreaRef.current.getBoundingClientRect()
@@ -113,84 +108,92 @@ export function GameScreen() {
 		const column = Math.floor(relativeX / (gameArea.width / 4))
 
 		return { column, y: relativeY }
-	}
+	}, [])
 
-	const findTileAtPosition = (column: number, tapY: number) => {
-		return tileRows.find((row) => {
-			// Must be the active column (black tile)
-			if (row.activeColumn !== column) return false
+	const findTileAtPosition = useCallback(
+		(column: number, tapY: number) => {
+			return tileRows.find((row) => {
+				// Must be the active column (black tile)
+				if (row.activeColumn !== column) return false
 
-			// Must be untapped
-			if (row.status !== "pending") return false
+				// Must be untapped
+				if (row.status !== "pending") return false
 
-			// Check Y bounds
-			const tileTop = row.y
-			const tileBottom = row.y + TILE_HEIGHT
+				// Check Y bounds
+				const tileTop = row.y
+				const tileBottom = row.y + TILE_HEIGHT
 
-			return tapY >= tileTop && tapY <= tileBottom
-		})
-	}
+				return tapY >= tileTop && tapY <= tileBottom
+			})
+		},
+		[tileRows.find],
+	)
 
-	const handleSuccessfulTap = (tile: TileRow) => {
+	const handleSuccessfulTap = useCallback((tile: TileRow) => {
 		// Update tile status to tapped
 		setTileRows((prevRows) =>
 			prevRows.map((row) =>
-				row.id === tile.id ? { ...row, status: "tapped" } : row,
+				row.id === tile.id
+					? { ...row, status: TileInteractionStatus.TAPPED }
+					: row,
 			),
 		)
 
 		// Update score
 		setScore((prevScore) => prevScore + 10)
-	}
+	}, [])
 
-	const handleMissedTap = () => {
+	const handleMissedTap = useCallback(() => {
 		// Decrease lives
 		setLives((prevLives) => {
 			const newLives = prevLives - 1
 			if (newLives <= 0) {
-				setGameStatus("gameOver")
+				setGameStatus(GameStatus.GAMEOVER)
 			}
 			return newLives
 		})
-	}
+	}, [])
 
-	const handleInteraction = (e: React.TouchEvent | React.MouseEvent) => {
-		e.preventDefault() // Prevent scrolling/zooming
+	const handleInteraction = useCallback(
+		(e: React.TouchEvent | React.MouseEvent) => {
+			e.preventDefault() // Prevent scrolling/zooming
 
-		if (gameStatus !== "playing") return
+			if (gameStatus !== GameStatus.PLAYING) return
 
-		const coords = extractCoordinates(e)
-		const gameCoords = getGameCoordinates(coords.x, coords.y)
+			const coords = extractCoordinates(e)
+			const gameCoords = getGameCoordinates(coords.x, coords.y)
 
-		if (!gameCoords) return
+			if (!gameCoords) return
 
-		const hitTile = findTileAtPosition(gameCoords.column, gameCoords.y)
+			const hitTile = findTileAtPosition(gameCoords.column, gameCoords.y)
 
-		if (hitTile) {
-			// Successful tap on black tile
-			handleSuccessfulTap(hitTile)
-		} else if (gameCoords.column >= 0 && gameCoords.column <= 3) {
-			// Tap on white space - miss
-			handleMissedTap()
-		}
-		// Ignore taps outside game area
-	}
+			if (hitTile) {
+				// Successful tap on black tile
+				handleSuccessfulTap(hitTile)
+			} else if (gameCoords.column >= 0 && gameCoords.column <= 3) {
+				// Tap on white space - miss
+				handleMissedTap()
+			}
+			// Ignore taps outside game area
+		},
+		[
+			extractCoordinates,
+			findTileAtPosition,
+			gameStatus,
+			getGameCoordinates, // Tap on white space - miss
+			handleMissedTap, // Successful tap on black tile
+			handleSuccessfulTap,
+		],
+	)
 
 	// [uv1000] do we want the SafeAreaContainer here? tbd
 	return (
 		<div className="flex min-h-screen flex-col bg-black text-white">
-			{/* Header - 10% of viewport */}
-			<header className="h-[10vh] flex items-center justify-between px-4 relative">
-				<div className="text-lg font-bold">2x</div>
-				{/* <div></div> */}
-			</header>
-
-			{/* Game Area - 80% of viewport */}
 			<main
 				ref={gameAreaRef}
 				onTouchStart={handleInteraction}
 				onMouseDown={handleInteraction}
-				className="h-[80vh] bg-gray-200 relative overflow-hidden grid grid-cols-4"
+				className="h-[90vh] bg-gray-200 relative overflow-hidden grid grid-cols-4" // 90% of the viewport
 			>
 				{tileRows.flatMap((row) =>
 					// For each row, render 4 tiles (one per column)
@@ -201,13 +204,13 @@ export function GameScreen() {
 						if (isActiveColumn) {
 							// Color based on tile status
 							switch (row.status) {
-								case "pending":
+								case TileInteractionStatus.PENDING:
 									bgColor = "bg-black"
 									break
-								case "tapped":
+								case TileInteractionStatus.TAPPED:
 									bgColor = "bg-blue-500"
 									break
-								case "missed":
+								case TileInteractionStatus.MISSED:
 									bgColor = "bg-red-500"
 									break
 							}
@@ -218,7 +221,7 @@ export function GameScreen() {
 								key={`${row.id}-${columnIndex}`}
 								className={`absolute w-full h-20 border border-gray-400 ${bgColor}`}
 								style={{
-									gridColumn: columnIndex + 1, // CSS grid columns are 1-based [uv1000] theory???
+									gridColumn: columnIndex + 1,
 									transform: `translateY(${row.y}px)`,
 								}}
 							/>
@@ -227,20 +230,7 @@ export function GameScreen() {
 				)}
 			</main>
 
-			{/* Footer - 10% of viewport */}
-			<footer className="h-[10vh] flex items-center justify-between px-4 bg-gray-800">
-				<div className="flex items-center space-x-4">
-					<div className="flex items-center space-x-2">
-						<span>❤️</span>
-						<span>{lives}</span>
-					</div>
-					<div className="flex items-center space-x-2">
-						<span>Score:</span>
-						<span>{score}</span>
-					</div>
-				</div>
-				<div className="text-sm">Status: {gameStatus}</div>
-			</footer>
+			<GameInfo lives={lives} score={score} gameStatus={gameStatus} />
 		</div>
 	)
 }
