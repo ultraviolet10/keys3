@@ -31,6 +31,9 @@ export function GameScreen() {
 	// Animation loop
 	useEffect(() => {
 		const gameLoop = (timestamp: number) => {
+			if (gameStatus !== GameStatus.PLAYING) {
+				return // Stop the animation loop when not in playing state
+			}
 			// Calculate delta time in seconds
 			const deltaTime = (timestamp - lastFrameTimeRef.current) / 1000
 			lastFrameTimeRef.current = timestamp
@@ -78,7 +81,7 @@ export function GameScreen() {
 				cancelAnimationFrame(animationIdRef.current)
 			}
 		}
-	}, [])
+	}, [gameStatus])
 
 	/**
 	 * [uv1000] should we be using so many useCallbacks here?
@@ -126,7 +129,7 @@ export function GameScreen() {
 				return tapY >= tileTop && tapY <= tileBottom
 			})
 		},
-		[tileRows.find],
+		[tileRows],
 	)
 
 	const handleSuccessfulTap = useCallback((tile: TileRow) => {
@@ -144,6 +147,7 @@ export function GameScreen() {
 	}, [])
 
 	const handleMissedTap = useCallback(() => {
+		setGameStatus(GameStatus.GAMEOVER)
 		// Decrease lives
 		setLives((prevLives) => {
 			const newLives = prevLives - 1
@@ -192,6 +196,7 @@ export function GameScreen() {
 				ref={gameAreaRef}
 				onTouchStart={handleInteraction}
 				onMouseDown={handleInteraction}
+				// event end handlers?
 				className="h-[90vh] bg-gray-200 relative overflow-hidden grid grid-cols-4" // 90% of the viewport
 			>
 				{tileRows.flatMap((row) =>
@@ -202,6 +207,7 @@ export function GameScreen() {
 
 						if (isActiveColumn) {
 							// Color based on tile status
+							// [uv1000] we're never really reaching this
 							switch (row.status) {
 								case TileInteractionStatus.PENDING:
 									bgColor = "bg-black"
