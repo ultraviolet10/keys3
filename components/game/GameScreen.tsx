@@ -10,8 +10,8 @@ export function GameScreen() {
 	const [lives, setLives] = useState(3)
 	const [score, setScore] = useState(0)
 	const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.PLAYING)
-	const [gameStartTime] = useState(Date.now())
-	const [currentSpeed, setCurrentSpeed] = useState(GAME_SPEED)
+	const gameStartTimeRef = useRef<number>(0)
+	const currentSpeedRef = useRef<number>(GAME_SPEED)
 
 	// TODO: Replace with Zustand store - this is temporary local state for testing
 	const [tileRows, setTileRows] = useState<TileRow[]>([
@@ -37,24 +37,30 @@ export function GameScreen() {
 			if (gameStatus !== GameStatus.PLAYING) {
 				return // Stop the animation loop when not in playing state
 			}
+
+			// Initialize game start time on first frame
+			if (gameStartTimeRef.current === 0) {
+				gameStartTimeRef.current = timestamp
+			}
+
 			// Calculate delta time in seconds
 			const deltaTime = (timestamp - lastFrameTimeRef.current) / 1000
 			lastFrameTimeRef.current = timestamp
 
-			// Update speed every 10 seconds
-			const elapsedTime = (timestamp - gameStartTime) / 1000
-			const speedLevel = Math.floor(elapsedTime / 10)
+			// Update speed every 3 seconds
+			const elapsedTime = (timestamp - gameStartTimeRef.current) / 1000
+			const speedLevel = Math.floor(elapsedTime / 3)
 			if (speedLevel !== lastSpeedUpdateRef.current) {
 				lastSpeedUpdateRef.current = speedLevel
-				const newSpeed = GAME_SPEED * (1 + speedLevel * 0.3) // Increase by 30% every 10 seconds
-				setCurrentSpeed(newSpeed)
+				const newSpeed = GAME_SPEED * (1 + speedLevel * 0.5) // Increase by 50% every 3 seconds
+				currentSpeedRef.current = newSpeed
 			}
 
 			// Update tile positions, spawn new tiles, and clean up off-screen tiles
 			setTileRows((prevRows) => {
 				let updatedRows = prevRows.map((row) => ({
 					...row,
-					y: row.y + currentSpeed * deltaTime,
+					y: row.y + currentSpeedRef.current * deltaTime,
 				}))
 
 				// Remove tiles that are off-screen (past bottom of viewport)
@@ -93,7 +99,7 @@ export function GameScreen() {
 				cancelAnimationFrame(animationIdRef.current)
 			}
 		}
-	}, [gameStatus, currentSpeed, gameStartTime])
+	}, [gameStatus])
 
 	/**
 	 * [uv1000] should we be using so many useCallbacks here?
