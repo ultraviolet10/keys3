@@ -409,10 +409,27 @@ lib/store/
 
 #### 🎵 **Audio System Integration**
 
-- Background music with beat synchronization
-- Tap sound effects with audio feedback
-- Rhythm-based tile spawning (replace random pattern)
-- Audio asset management and performance optimization
+**Atomic Implementation Tasks (Sequential)**:
+
+**Phase 1: Basic Audio Foundation**
+1. Add single audio file to `public/audio/` (test with any .mp3/.wav)
+2. Create basic AudioManager class with `playNote()` method
+3. Test audio playback with temporary button click
+4. Connect audio playback to tile tap (`handleSuccessfulTap`)
+
+**Phase 2: Sequential Notes System**
+5. Add 7 audio files (C4.mp3, D4.mp3, E4.mp3, F4.mp3, G4.mp3, A4.mp3, B4.mp3)
+6. Create note sequence array `['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']`
+7. Add `noteIndex` state to track current position in sequence
+8. Update `handleSuccessfulTap` to play sequential notes (arpeggio pattern)
+9. Test complete arpeggio sequence with tile taps
+
+**Phase 3: Audio Polish (Future)**
+- Loop sequence when reaching end
+- Add volume control
+- Multiple instrument support (piano, guitar, synth)
+- Note preloading for performance optimization
+- Beat-synchronized tile spawning to replace random pattern
 
 #### 🔧 **Advanced Game Features**
 

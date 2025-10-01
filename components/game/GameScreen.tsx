@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { audioManager } from "@/lib/audio/AudioManager"
 import { GAME_SPEED, TILE_HEIGHT } from "@/lib/store/constants"
 import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
 import GameInfo from "./GameInfo"
@@ -12,6 +13,8 @@ export function GameScreen() {
 	const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.PLAYING)
 	const gameStartTimeRef = useRef<number>(0)
 	const currentSpeedRef = useRef<number>(GAME_SPEED)
+	const [noteIndex, setNoteIndex] = useState(0)
+	const noteSequence = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"]
 
 	// TODO: Replace with Zustand store - this is temporary local state for testing
 	const [tileRows, setTileRows] = useState<TileRow[]>([
@@ -150,19 +153,27 @@ export function GameScreen() {
 		[tileRows],
 	)
 
-	const handleSuccessfulTap = useCallback((tile: TileRow) => {
-		// Update tile status to tapped
-		setTileRows((prevRows) =>
-			prevRows.map((row) =>
-				row.id === tile.id
-					? { ...row, status: TileInteractionStatus.TAPPED }
-					: row,
-			),
-		)
+	const handleSuccessfulTap = useCallback(
+		(tile: TileRow) => {
+			// Update tile status to tapped
+			setTileRows((prevRows) =>
+				prevRows.map((row) =>
+					row.id === tile.id
+						? { ...row, status: TileInteractionStatus.TAPPED }
+						: row,
+				),
+			)
 
-		// Update score
-		setScore((prevScore) => prevScore + 10)
-	}, [])
+			// Play sequential note
+			const currentNote = noteSequence[noteIndex]
+			audioManager.playNote(currentNote)
+			setNoteIndex((prev) => (prev + 1) % noteSequence.length)
+
+			// Update score
+			setScore((prevScore) => prevScore + 10)
+		},
+		[noteIndex],
+	)
 
 	const handleMissedTap = useCallback(
 		(_column: number, tapY: number) => {
@@ -230,6 +241,15 @@ export function GameScreen() {
 
 	return (
 		<div className="flex min-h-screen flex-col bg-black text-white">
+			{/* Temporary audio test button */}
+			<button
+				type="button"
+				onClick={() => audioManager.playNote("C4")}
+				className="absolute top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded"
+			>
+				Test Audio
+			</button>
+
 			<main
 				ref={gameAreaRef}
 				onTouchStart={handleInteraction}
