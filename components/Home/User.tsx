@@ -1,4 +1,4 @@
-import { useFrame } from "@/components/farcaster-provider"
+import { useFrame } from "@/components/FarcasterProvider"
 
 export function User() {
 	const { context } = useFrame()

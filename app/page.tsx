@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import App from "@/components/pages/app"
+import App from "@/components/pages/App"
 import { APP_URL } from "@/lib/constants"
 
 const frame = {

@@ -8,7 +8,7 @@ import {
 	useSendTransaction,
 	useSwitchChain,
 } from "wagmi"
-import { useFrame } from "@/components/farcaster-provider"
+import { useFrame } from "@/components/FarcasterProvider"
 
 export function WalletActions() {
 	const { isEthProviderAvailable } = useFrame()

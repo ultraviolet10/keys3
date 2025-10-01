@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { GAME_SPEED, TILE_HEIGHT } from "@/lib/store/constants"
 import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
-import GameInfo from "./game-info"
+import GameInfo from "./GameInfo"
 
 export function GameScreen() {
 	// Game state - TODO: Replace with Zustand store later
@@ -180,13 +180,12 @@ export function GameScreen() {
 			extractCoordinates,
 			findTileAtPosition,
 			gameStatus,
-			getGameCoordinates, // Tap on white space - miss
-			handleMissedTap, // Successful tap on black tile
+			getGameCoordinates,
+			handleMissedTap,
 			handleSuccessfulTap,
 		],
 	)
 
-	// [uv1000] do we want the SafeAreaContainer here? tbd
 	return (
 		<div className="flex min-h-screen flex-col bg-black text-white">
 			<main

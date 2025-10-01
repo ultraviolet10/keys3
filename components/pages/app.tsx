@@ -1,8 +1,8 @@
 "use client"
 
-import { useFrame } from "@/components/farcaster-provider"
+import { useFrame } from "@/components/FarcasterProvider"
 import { Demo } from "@/components/Home"
-import { SafeAreaContainer } from "@/components/safe-area-container"
+import { SafeAreaContainer } from "@/components/SafeAreaContainer"
 
 export default function Home() {
 	const { context, isLoading, isSDKLoaded } = useFrame()

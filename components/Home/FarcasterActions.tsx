@@ -1,4 +1,4 @@
-import { useFrame } from "@/components/farcaster-provider"
+import { useFrame } from "@/components/FarcasterProvider"
 import { APP_URL } from "@/lib/constants"
 
 export function FarcasterActions() {
