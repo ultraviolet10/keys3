@@ -50,12 +50,12 @@ export function GameScreen() {
 			const deltaTime = (timestamp - lastFrameTimeRef.current) / 1000
 			lastFrameTimeRef.current = timestamp
 
-			// Update speed every 3 seconds
+			// Update speed every 10 seconds
 			const elapsedTime = (timestamp - gameStartTimeRef.current) / 1000
-			const speedLevel = Math.floor(elapsedTime / 3)
+			const speedLevel = Math.floor(elapsedTime / 10)
 			if (speedLevel !== lastSpeedUpdateRef.current) {
 				lastSpeedUpdateRef.current = speedLevel
-				const newSpeed = GAME_SPEED * (1 + speedLevel * 0.5) // Increase by 50% every 3 seconds
+				const newSpeed = GAME_SPEED * (1 + speedLevel * 0.2) // Increase by 20% every 10 seconds
 				currentSpeedRef.current = newSpeed
 			}
 

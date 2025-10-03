@@ -18,8 +18,8 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
 
 ### 2. State Management Architecture
 
-- **Library**: Zustand v5.0.8 (already installed)
-- **Store Pattern**: Single centralized game store
+- **Library**: React useState (local state management)
+- **Store Pattern**: Component-level state with potential future migration
 - **State Structure**:
 
   ```typescript
@@ -35,14 +35,6 @@ A Farcaster miniapp implementation of Piano Tiles, optimized for mobile gameplay
     gameSpeed: number
     activeTiles: Tile[]
     tileSequence: TilePattern[]
-    
-    // Actions
-    startGame: () => void
-    pauseGame: () => void
-    resetGame: () => void
-    updateScore: (points: number) => void
-    decrementLives: () => void
-    updateProgress: (percent: number) => void
   }
   ```
 
@@ -76,7 +68,7 @@ components/
 │   ├── GameFooter.tsx           # Lives + progress display
 │   ├── GameControls.tsx         # Start/pause/restart buttons
 │   └── hooks/
-│       ├── useGameState.ts      # Zustand store hook
+│       ├── useGameState.ts      # Local state management hook
 │       ├── useTilePool.ts       # Object pooling management
 │       ├── useGameLoop.ts       # Animation frame loop
 │       └── useTouchHandler.ts   # Touch event coordination
@@ -173,7 +165,7 @@ components/
 
 1. Create basic component structure
 2. Implement static layout (header/game/footer)
-3. Setup Zustand store with initial state
+3. Setup local React state with game state
 4. Replace Demo component with GameScreen
 
 ### Phase 2: Game Mechanics
@@ -256,7 +248,7 @@ components/Game/GameScreen.tsx
 **Key Technical Implementation**:
 
 - **TileRow Interface**: `{ id, y, activeColumn, status: 'pending'|'tapped'|'missed' }`
-- **Game State**: Lives (3), Score (0), Status ('playing') - local useState for now
+- **Game State**: Lives (3), Score (0), Status ('playing') - local useState
 - **Layout Strategy**: CSS Grid 4 columns, 10vh header + 80vh game + 10vh footer
 
 #### ✅ Completed: Movement System
@@ -298,14 +290,13 @@ components/Game/GameScreen.tsx
 
 ### Next Session Priorities
 
-#### 🔄 State Management Migration
+#### 🔄 State Management Enhancement
 
-**Zustand Integration** (High Priority):
+**Local State Optimization** (Medium Priority):
 
-- Migrate from local useState to centralized Zustand store
-- Implement proper game state actions and selectors
 - Add auto-miss detection for tiles that pass untapped
-- Performance optimization with state subscriptions
+- Implement proper game state validation
+- Optimize re-renders with useMemo/useCallback
 
 #### 🎨 Visual Polish & UX
 
@@ -349,54 +340,21 @@ components/Game/GameScreen.tsx
 
 #### State Architecture
 
-- **Current**: Local React state (temporary)
-- **Target**: Zustand store with proper actions/selectors
-- **Migration**: Gradual refactor to maintain working state
+- **Current**: Local React state 
+- **Future**: Potential state management library if complexity increases
+- **Optimization**: Focus on performance with current approach
 
-### Session 2: Zustand State Management Migration (Completed)
-
-#### ✅ Completed: Modular Zustand Architecture
-
-**Store Structure**:
-
-```md
-lib/store/
-├── index.ts          # Single import point: useGameStore, selectors, types
-├── types.ts          # GameState, GameActions, TileRow interfaces
-├── constants.ts      # GAME_SPEED, TILE_HEIGHT, thresholds
-├── initialState.ts   # Default game state with initial tiles
-├── actions.ts        # All game actions with Immer middleware
-├── gameStore.ts      # Main store creation with Immer
-└── selectors.ts      # Performance-optimized selector hooks
-```
-
-#### ✅ Completed: Performance-Optimized Actions
-
-**Key Features**:
-
-- **Game State Validation**: All actions only run when `game.status === 'playing'`
-- **O(n) Performance**: Replaced `findIndex` with `for` loops + early breaks
-- **Proper Immer Usage**: Fixed TypeScript void return errors
-- **Atomic Updates**: Single store updates, no race conditions
-
-#### ✅ Completed: Component Integration
-
-**Migration Results**:
-
-- **Removed all useState**: Eliminated duplicate state completely
-- **Selective Subscriptions**: Components only re-render on relevant state changes
-- **Clean Imports**: Single import from `@/lib/store` for all game functionality
-- **Auto-Miss Detection**: Advanced game logic with tile lifecycle management
+### Session 2: Current Status (Using Local React State)
 
 #### 🎯 Current Technical State
 
-**Fully Functional Zustand-Powered Game**:
+**Fully Functional React State Game**:
 
 - Continuous seamless tile flow with 200px/s speed
 - Precise touch detection with coordinate mapping
-- Real-time scoring with multiplier system (3 lives, auto-miss, game over)
+- Real-time scoring system (3 lives, game over detection)
 - Cross-platform compatibility (mobile touch + desktop click)
-- Performance optimized with O(n) algorithms and selective subscriptions
+- Single-file implementation for rapid development
 
 ### Next Session Priorities
 
@@ -437,26 +395,6 @@ lib/store/
 - Combo system and score multipliers
 - Persistent high score storage
 - Game pause/resume functionality
-
-### Zustand Architecture Quick Reference
-
-**Store Usage Patterns**:
-
-```typescript
-// Selective subscriptions (performance optimized)
-const tiles = useGameTiles()                    // Only tiles
-const { score, lives } = usePlayerStats()       // Only player stats
-const gameStatus = useGameStatus()              // Only game status
-
-// Action usage
-const { tapTile, resetGame } = useGameActions() // Game actions
-```
-
-**Performance Notes**:
-
-- All actions validate `game.status === 'playing'` before execution
-- Tile operations use `for` loops with early breaks for O(n) performance
-- Single source of truth eliminates state synchronization issues
 
 ---
 

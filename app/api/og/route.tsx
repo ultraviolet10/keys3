@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
 						}}
 					>
 						{imageUrl ? (
+							// biome-ignore lint/performance/noImgElement: there's some weird thing that happens when I import Image, unimportant rn
 							<img
 								src={imageUrl}
 								alt={username}

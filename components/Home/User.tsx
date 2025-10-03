@@ -10,6 +10,7 @@ export function User() {
 				{context?.user ? (
 					<>
 						{context?.user?.pfpUrl && (
+							// biome-ignore lint/performance/noImgElement: check the explanation in the other place we're ignoring this
 							<img
 								src={context?.user?.pfpUrl}
 								className="w-14 h-14 rounded-full"
@@ -18,7 +19,7 @@ export function User() {
 								height={56}
 							/>
 						)}
-						<div className="flex flex-col justify-start items-start space-y-2">
+					<div className="flex flex-col justify-start items-start space-y-2">
 							<p className="text-sm text-left">
 								user.displayName:{" "}
 								<span className="bg-white font-mono text-black rounded-md p-[4px]">
