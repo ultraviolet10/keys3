@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'orange-kid': ['Orange Kid', 'sans-serif'],
+        'display': ['Orange Kid', 'sans-serif'], // Alternative name for headlines
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":

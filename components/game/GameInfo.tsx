@@ -36,7 +36,7 @@ const statItemVariants = cva(
 				status: "text-gray-300",
 			},
 			highlight: {
-				true: "text-white font-bold",
+				true: "text-white font-bold font-orange-kid",
 				false: "",
 			},
 		},
@@ -48,7 +48,7 @@ const statItemVariants = cva(
 )
 
 // CVA variants for stat icons/labels
-const statLabelVariants = cva("text-xs font-medium uppercase tracking-wider", {
+const statLabelVariants = cva("text-xs font-medium uppercase tracking-wider font-orange-kid", {
 	variants: {
 		type: {
 			lives: "text-red-400",
@@ -90,7 +90,7 @@ const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
 					<span className="text-lg">❤️</span>
 					<div className="flex flex-col">
 						<span className={statLabelVariants({ type: "lives" })}>Lives</span>
-						<span className="text-lg font-bold">{lives}</span>
+						<span className="text-lg font-bold font-orange-kid">{lives}</span>
 					</div>
 				</div>
 
@@ -99,17 +99,16 @@ const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
 					<span className="text-lg">🎯</span>
 					<div className="flex flex-col">
 						<span className={statLabelVariants({ type: "score" })}>Score</span>
-						<span className="text-lg font-bold">{score.toLocaleString()}</span>
+						<span className="text-lg font-bold font-orange-kid">{score.toLocaleString()}</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Game Status */}
 			<div className={statItemVariants({ type: "status" })}>
-				
 				<div className="text-right">
 					<div className={statLabelVariants({ type: "status" })}>Status</div>
-					<div className="text-sm font-semibold capitalize">
+					<div className="text-sm font-semibold font-orange-kid capitalize">
 						{gameStatus.toLowerCase()}
 					</div>
 				</div>

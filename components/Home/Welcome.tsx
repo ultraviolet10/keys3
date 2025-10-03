@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation"
 const Welcome = () => {
 	const router = useRouter()
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center p-4 space-y-8">
-			<h1 className="text-3xl font-bold text-center">keys3</h1>
-
+		<div className="flex min-h-screen flex-col items-center justify-center p-4 space-y-8 font-orange-kid">
 			<button
 				type="button"
 				onClick={() => router.push("/game")}

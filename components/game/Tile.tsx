@@ -1,5 +1,5 @@
+import { cva } from "class-variance-authority"
 import { memo } from "react"
-import { cva, type VariantProps } from "class-variance-authority"
 import { TileInteractionStatus } from "@/types"
 
 // CVA variants for tile styling (moved from GameScreen)
@@ -55,40 +55,41 @@ const arePropsEqual = (prevProps: TileProps, nextProps: TileProps): boolean => {
 }
 
 // Memoized tile component that only re-renders when props change
-const Tile = memo(({ 
-	rowId, 
-	columnIndex, 
-	yPosition, 
-	isActive, 
-	status 
-}: TileProps) => {
-	// Development: Log renders to console to verify memoization
-	if (process.env.NODE_ENV === "development") {
-		console.log(`🎯 Tile render: Row ${rowId}, Col ${columnIndex}, Y: ${yPosition}, Active: ${isActive}, Status: ${status}`)
-	}
+const Tile = memo(
+	({ rowId, columnIndex, yPosition, isActive, status }: TileProps) => {
+		// Development: Log renders to console to verify memoization
+		if (process.env.NODE_ENV === "development") {
+			console.log(
+				`🎯 Tile render: Row ${rowId}, Col ${columnIndex}, Y: ${yPosition}, Active: ${isActive}, Status: ${status}`,
+			)
+		}
 
-	// Determine tile type and status for CVA
-	const tileType = isActive ? "active" : "inactive"
-	const tileStatus = status as "pending" | "tapped" | "missed"
-	
-	// Calculate final status for CVA (handles inactive missed tiles)
-	const finalStatus = isActive 
-		? tileStatus 
-		: (status === TileInteractionStatus.MISSED ? "missed" : "pending")
+		// Determine tile type and status for CVA
+		const tileType = isActive ? "active" : "inactive"
+		const tileStatus = status as "pending" | "tapped" | "missed"
 
-	return (
-		<div
-			className={tileVariants({
-				type: tileType,
-				status: finalStatus,
-			})}
-			style={{
-				gridColumn: columnIndex + 1,
-				transform: `translateY(${yPosition}px)`,
-			}}
-		/>
-	)
-}, arePropsEqual)
+		// Calculate final status for CVA (handles inactive missed tiles)
+		const finalStatus = isActive
+			? tileStatus
+			: status === TileInteractionStatus.MISSED
+				? "missed"
+				: "pending"
+
+		return (
+			<div
+				className={tileVariants({
+					type: tileType,
+					status: finalStatus,
+				})}
+				style={{
+					gridColumn: columnIndex + 1,
+					transform: `translateY(${yPosition}px)`,
+				}}
+			/>
+		)
+	},
+	arePropsEqual,
+)
 
 // Display name for debugging
 Tile.displayName = "Tile"

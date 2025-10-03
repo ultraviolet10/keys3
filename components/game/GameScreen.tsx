@@ -4,8 +4,8 @@ import { cva } from "class-variance-authority"
 import { useRef } from "react"
 import { usePiano } from "@/lib/hooks/usePiano"
 import GameInfo from "./GameInfo"
-import Tile from "./Tile"
 import PerformanceMonitor from "./PerformanceMonitor"
+import Tile from "./Tile"
 
 // CVA variants for game container
 const gameContainerVariants = cva(
@@ -50,7 +50,7 @@ export function GameScreen() {
 		<div className={mainContainerVariants({ theme: "classic" })}>
 			{/* Performance monitoring for development */}
 			<PerformanceMonitor />
-			
+
 			<main
 				ref={gameAreaRef}
 				onTouchStart={(e) => handleInteraction(e, gameAreaRef)}

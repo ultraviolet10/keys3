@@ -57,10 +57,10 @@ export const PerformanceMonitor = () => {
 	}
 
 	return (
-		<div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs font-mono z-50">
-			<div>FPS: {stats.fps}</div>
-			<div>Frames: {stats.renderCount}</div>
-			<div>Avg Frame: {stats.avgFrameTime}ms</div>
+		<div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
+			<div>FPS: <span className="font-bold text-green-400">{stats.fps}</span></div>
+			<div>Frames: <span className="font-bold text-blue-400">{stats.renderCount}</span></div>
+			<div>Avg Frame: <span className="font-bold text-yellow-400">{stats.avgFrameTime}ms</span></div>
 		</div>
 	)
 }

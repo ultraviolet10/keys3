@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 import { audioManager } from "@/lib/audio/AudioManager"
-import { GAME_SPEED, noteSequence, TILE_HEIGHT } from "@/lib/store/constants"
+import { GAME_SPEED, initialTileRows, noteSequence, TILE_HEIGHT } from "@/lib/store/constants"
 import { usePianoStore } from "@/lib/store/game-store"
 import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
 
@@ -231,45 +231,7 @@ export const usePiano = () => {
 			score: 0,
 			gameStatus: GameStatus.PLAYING,
 			noteIndex: 0,
-			tileRows: [
-				{ id: 1, y: 0, activeColumn: 0, status: TileInteractionStatus.PENDING },
-				{
-					id: 2,
-					y: 80,
-					activeColumn: 1,
-					status: TileInteractionStatus.PENDING,
-				},
-				{
-					id: 3,
-					y: 160,
-					activeColumn: 3,
-					status: TileInteractionStatus.PENDING,
-				},
-				{
-					id: 4,
-					y: 240,
-					activeColumn: 2,
-					status: TileInteractionStatus.PENDING,
-				},
-				{
-					id: 5,
-					y: 320,
-					activeColumn: 1,
-					status: TileInteractionStatus.PENDING,
-				},
-				{
-					id: 6,
-					y: 400,
-					activeColumn: 0,
-					status: TileInteractionStatus.PENDING,
-				},
-				{
-					id: 7,
-					y: 480,
-					activeColumn: 0,
-					status: TileInteractionStatus.PENDING,
-				},
-			],
+			tileRows: initialTileRows,
 		})
 
 		gameStartTimeRef.current = 0
