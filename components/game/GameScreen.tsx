@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef } from "react"
-import { audioManager } from "@/lib/audio/AudioManager"
 import { usePiano } from "@/lib/hooks/usePiano"
 import { TileInteractionStatus } from "@/types"
 import GameInfo from "./GameInfo"
@@ -15,15 +14,6 @@ export function GameScreen() {
 
 	return (
 		<div className="flex min-h-screen flex-col bg-black text-white">
-			{/* Temporary audio test button */}
-			<button
-				type="button"
-				onClick={() => audioManager.playNote("C4")}
-				className="absolute top-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded"
-			>
-				Test Audio
-			</button>
-
 			<main
 				ref={gameAreaRef}
 				onTouchStart={(e) => handleInteraction(e, gameAreaRef)}

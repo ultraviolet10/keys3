@@ -1,25 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { audioManager } from "@/lib/audio/AudioManager"
-import { GAME_SPEED, TILE_HEIGHT } from "@/lib/store/constants"
+import { GAME_SPEED, noteSequence, TILE_HEIGHT } from "@/lib/store/constants"
+import { usePianoStore } from "@/lib/store/game-store"
 import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
 
 export const usePiano = () => {
-	// Game state
-	const [lives, setLives] = useState(1) // player dies after 1 mistake
-	const [score, setScore] = useState(0)
-	const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.PLAYING)
-	const [noteIndex, setNoteIndex] = useState(0)
-	const noteSequence = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"]
-
-	const [tileRows, setTileRows] = useState<TileRow[]>([
-		{ id: 1, y: 0, activeColumn: 0, status: TileInteractionStatus.PENDING },
-		{ id: 2, y: 80, activeColumn: 1, status: TileInteractionStatus.PENDING },
-		{ id: 3, y: 160, activeColumn: 3, status: TileInteractionStatus.PENDING },
-		{ id: 4, y: 240, activeColumn: 2, status: TileInteractionStatus.PENDING },
-		{ id: 5, y: 320, activeColumn: 1, status: TileInteractionStatus.PENDING },
-		{ id: 6, y: 400, activeColumn: 0, status: TileInteractionStatus.PENDING },
-		{ id: 7, y: 480, activeColumn: 0, status: TileInteractionStatus.PENDING },
-	])
+	// Selectors (avoid re-rendering on unrelated state changes)
+	const lives = usePianoStore((s) => s.lives)
+	const score = usePianoStore((s) => s.score)
+	const gameStatus = usePianoStore((s) => s.gameStatus)
+	const noteIndex = usePianoStore((s) => s.noteIndex)
+	const tileRows = usePianoStore((s) => s.tileRows)
 
 	// Animation loop refs
 	const gameStartTimeRef = useRef<number>(0)
@@ -55,8 +46,8 @@ export const usePiano = () => {
 			}
 
 			// Update tile positions, spawn new tiles, and clean up off-screen tiles
-			setTileRows((prevRows) => {
-				let updatedRows = prevRows.map((row) => ({
+			usePianoStore.setState((state) => {
+				let updatedRows = state.tileRows.map((row) => ({
 					...row,
 					y: row.y + currentSpeedRef.current * deltaTime,
 				}))
@@ -81,7 +72,7 @@ export const usePiano = () => {
 					updatedRows.unshift(newTile) // Add to beginning of array
 				}
 
-				return updatedRows
+				return { tileRows: updatedRows }
 			})
 
 			// Continue the loop
@@ -150,27 +141,23 @@ export const usePiano = () => {
 		[tileRows],
 	)
 
-	const handleSuccessfulTap = useCallback(
-		(tile: TileRow) => {
-			// Update tile status to tapped
-			setTileRows((prevRows) =>
-				prevRows.map((row) =>
-					row.id === tile.id
-						? { ...row, status: TileInteractionStatus.TAPPED }
-						: row,
-				),
-			)
+	const handleSuccessfulTap = useCallback((tile: TileRow) => {
+		// Play sequential note based on current state
+		const { noteIndex: ni } = usePianoStore.getState()
+		const currentNote = noteSequence[ni]
+		audioManager.playNote(currentNote)
 
-			// Play sequential note
-			const currentNote = noteSequence[noteIndex]
-			audioManager.playNote(currentNote)
-			setNoteIndex((prev) => (prev + 1) % noteSequence.length)
-
-			// Update score
-			setScore((prevScore) => prevScore + 10)
-		},
-		[noteIndex],
-	)
+		// Update tileRows, noteIndex, score atomically
+		usePianoStore.setState((state) => ({
+			tileRows: state.tileRows.map((row) =>
+				row.id === tile.id
+					? { ...row, status: TileInteractionStatus.TAPPED }
+					: row,
+			),
+			noteIndex: (state.noteIndex + 1) % noteSequence.length,
+			score: state.score + 10,
+		}))
+	}, [])
 
 	const handleMissedTap = useCallback(
 		(_column: number, tapY: number) => {
@@ -181,24 +168,22 @@ export const usePiano = () => {
 				return tapY >= tileTop && tapY <= tileBottom
 			})
 
-			// Mark the clicked white tile as missed for visual feedback
-			if (clickedRow) {
-				setTileRows((prevRows) =>
-					prevRows.map((row) =>
-						row.id === clickedRow.id
-							? { ...row, status: TileInteractionStatus.MISSED }
-							: row,
-					),
-				)
-			}
+			// Decrease lives and mark clicked row (if any), possibly set GAMEOVER
+			usePianoStore.setState((state) => {
+				const newRows = clickedRow
+					? state.tileRows.map((row) =>
+							row.id === clickedRow.id
+								? { ...row, status: TileInteractionStatus.MISSED }
+								: row,
+						)
+					: state.tileRows
 
-			// Decrease lives
-			setLives((prevLives) => {
-				const newLives = prevLives - 1
-				if (newLives <= 0) {
-					setGameStatus(GameStatus.GAMEOVER)
+				const newLives = state.lives - 1
+				return {
+					tileRows: newRows,
+					lives: newLives,
+					gameStatus: newLives <= 0 ? GameStatus.GAMEOVER : state.gameStatus,
 				}
-				return newLives
 			})
 		},
 		[tileRows],
@@ -241,26 +226,57 @@ export const usePiano = () => {
 
 	// Game actions
 	const resetGame = useCallback(() => {
-		setLives(1)
-		setScore(0)
-		setGameStatus(GameStatus.PLAYING)
-		setNoteIndex(0)
+		usePianoStore.setState({
+			lives: 1,
+			score: 0,
+			gameStatus: GameStatus.PLAYING,
+			noteIndex: 0,
+			tileRows: [
+				{ id: 1, y: 0, activeColumn: 0, status: TileInteractionStatus.PENDING },
+				{
+					id: 2,
+					y: 80,
+					activeColumn: 1,
+					status: TileInteractionStatus.PENDING,
+				},
+				{
+					id: 3,
+					y: 160,
+					activeColumn: 3,
+					status: TileInteractionStatus.PENDING,
+				},
+				{
+					id: 4,
+					y: 240,
+					activeColumn: 2,
+					status: TileInteractionStatus.PENDING,
+				},
+				{
+					id: 5,
+					y: 320,
+					activeColumn: 1,
+					status: TileInteractionStatus.PENDING,
+				},
+				{
+					id: 6,
+					y: 400,
+					activeColumn: 0,
+					status: TileInteractionStatus.PENDING,
+				},
+				{
+					id: 7,
+					y: 480,
+					activeColumn: 0,
+					status: TileInteractionStatus.PENDING,
+				},
+			],
+		})
+
 		gameStartTimeRef.current = 0
 		currentSpeedRef.current = GAME_SPEED
 		lastFrameTimeRef.current = 0
 		lastSpeedUpdateRef.current = 0
 		nextIdRef.current = 8
-
-		// Reset tiles to initial state
-		setTileRows([
-			{ id: 1, y: 0, activeColumn: 0, status: TileInteractionStatus.PENDING },
-			{ id: 2, y: 80, activeColumn: 1, status: TileInteractionStatus.PENDING },
-			{ id: 3, y: 160, activeColumn: 3, status: TileInteractionStatus.PENDING },
-			{ id: 4, y: 240, activeColumn: 2, status: TileInteractionStatus.PENDING },
-			{ id: 5, y: 320, activeColumn: 1, status: TileInteractionStatus.PENDING },
-			{ id: 6, y: 400, activeColumn: 0, status: TileInteractionStatus.PENDING },
-			{ id: 7, y: 480, activeColumn: 0, status: TileInteractionStatus.PENDING },
-		])
 	}, [])
 
 	return {
