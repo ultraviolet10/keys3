@@ -106,6 +106,7 @@ const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
 
 			{/* Game Status */}
 			<div className={statItemVariants({ type: "status" })}>
+				
 				<div className="text-right">
 					<div className={statLabelVariants({ type: "status" })}>Status</div>
 					<div className="text-sm font-semibold capitalize">
