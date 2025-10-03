@@ -1,8 +1,8 @@
 "use client"
 
 import { useFrame } from "@/components/FarcasterProvider"
-import { Demo } from "@/components/Home"
 import { SafeAreaContainer } from "@/components/SafeAreaContainer"
+import Welcome from "../Home/Welcome"
 
 export default function Home() {
 	const { context, isLoading, isSDKLoaded } = useFrame()
@@ -31,7 +31,7 @@ export default function Home() {
 
 	return (
 		<SafeAreaContainer insets={context?.client.safeAreaInsets}>
-			<Demo />
+			<Welcome />
 		</SafeAreaContainer>
 	)
 }
