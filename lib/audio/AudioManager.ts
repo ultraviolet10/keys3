@@ -1,3 +1,5 @@
+import { notes } from "../store/constants"
+
 export class AudioManager {
 	private audioCache: Map<string, HTMLAudioElement> = new Map()
 	private isEnabled: boolean = true
@@ -8,8 +10,6 @@ export class AudioManager {
 	}
 
 	private async preloadAudio(): Promise<void> {
-		const notes = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"]
-
 		for (const note of notes) {
 			try {
 				const audio = new Audio(`/audio/${note}.mp3`)
