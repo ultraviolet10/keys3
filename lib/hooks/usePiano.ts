@@ -4,6 +4,7 @@ import { audioManager } from "@/lib/audio/AudioManager"
 import {
 	GAME_SPEED,
 	initialTileRows,
+	melodySequence,
 	noteSequence,
 	TILE_HEIGHT,
 } from "@/lib/store/constants"
@@ -15,6 +16,8 @@ export const usePiano = () => {
 	const score = usePianoStore((s) => s.score)
 	const gameStatus = usePianoStore((s) => s.gameStatus)
 	const noteIndex = usePianoStore((s) => s.noteIndex)
+	const melodyIndex = usePianoStore((s) => s.melodyIndex)
+	const melodyCompleted = usePianoStore((s) => s.melodyCompleted)
 	const tileRows = usePianoStore((s) => s.tileRows)
 
 	// Get haptics from Farcaster frame
@@ -151,9 +154,34 @@ export const usePiano = () => {
 
 	const handleSuccessfulTap = useCallback(
 		(tile: TileRow) => {
-			// Play sequential note based on current state
-			const { noteIndex: ni } = usePianoStore.getState()
-			const currentNote = noteSequence[ni]
+			const currentState = usePianoStore.getState()
+
+			// Determine which note to play based on melody progress
+			let currentNote: string
+			let newMelodyIndex = currentState.melodyIndex
+			let newNoteIndex = currentState.noteIndex
+			let newMelodyCompleted = currentState.melodyCompleted
+			let newGameStatus = currentState.gameStatus
+
+			if (
+				!currentState.melodyCompleted &&
+				currentState.melodyIndex < melodySequence.length
+			) {
+				// Playing melody sequence
+				currentNote = melodySequence[currentState.melodyIndex]
+				newMelodyIndex = currentState.melodyIndex + 1
+
+				// Check if melody is completed
+				if (newMelodyIndex >= melodySequence.length) {
+					newMelodyCompleted = true
+					newGameStatus = GameStatus.WON
+				}
+			} else {
+				// Fallback to sequential notes after melody completion
+				currentNote = noteSequence[currentState.noteIndex]
+				newNoteIndex = (currentState.noteIndex + 1) % noteSequence.length
+			}
+
 			audioManager.playNote(currentNote)
 
 			// Trigger medium haptic feedback for successful tap
@@ -161,14 +189,17 @@ export const usePiano = () => {
 				haptics.impactOccurred("medium")
 			}
 
-			// Update tileRows, noteIndex, score atomically
+			// Update game state atomically
 			usePianoStore.setState((state) => ({
 				tileRows: state.tileRows.map((row) =>
 					row.id === tile.id
 						? { ...row, status: TileInteractionStatus.TAPPED }
 						: row,
 				),
-				noteIndex: (state.noteIndex + 1) % noteSequence.length,
+				melodyIndex: newMelodyIndex,
+				noteIndex: newNoteIndex,
+				melodyCompleted: newMelodyCompleted,
+				gameStatus: newGameStatus,
 				score: state.score + 10,
 			}))
 		},
@@ -230,8 +261,18 @@ export const usePiano = () => {
 				// Successful tap on black tile
 				handleSuccessfulTap(hitTile)
 			} else if (gameCoords.column >= 0 && gameCoords.column <= 3) {
-				// Tap on white space - miss
-				handleMissedTap(gameCoords.column, gameCoords.y)
+				// Check if there's actually a tile row at this Y position
+				const tileRowAtPosition = tileRows.find((row) => {
+					const tileTop = row.y
+					const tileBottom = row.y + TILE_HEIGHT
+					return gameCoords.y >= tileTop && gameCoords.y <= tileBottom
+				})
+
+				// Only count as miss if there's actually a tile row here (white space tap)
+				if (tileRowAtPosition) {
+					handleMissedTap(gameCoords.column, gameCoords.y)
+				}
+				// Otherwise ignore taps in empty space
 			}
 			// Ignore taps outside game area
 		},
@@ -242,6 +283,7 @@ export const usePiano = () => {
 			getGameCoordinates,
 			handleMissedTap,
 			handleSuccessfulTap,
+			tileRows.find,
 		],
 	)
 
@@ -252,6 +294,8 @@ export const usePiano = () => {
 			score: 0,
 			gameStatus: GameStatus.PLAYING,
 			noteIndex: 0,
+			melodyIndex: 0,
+			melodyCompleted: false,
 			tileRows: initialTileRows,
 		})
 
@@ -269,6 +313,8 @@ export const usePiano = () => {
 		gameStatus,
 		tileRows,
 		noteIndex,
+		melodyIndex,
+		melodyCompleted,
 
 		// Game actions
 		resetGame,

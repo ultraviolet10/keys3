@@ -27,4 +27,5 @@ export enum GameStatus {
 	PLAYING = "playing",
 	PAUSED = "paused",
 	GAMEOVER = "gameOver",
+	WON = "won",
 }
