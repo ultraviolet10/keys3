@@ -13,22 +13,24 @@ const tileVariants = cva(
 				inactive: "bg-white", // Default white space
 			},
 			status: {
-				pending: "bg-black",
-				tapped: "bg-blue-500 shadow-lg shadow-blue-500/25",
-				missed: "bg-red-500 shadow-lg shadow-red-500/25",
+				[TileInteractionStatus.PENDING]: "bg-black",
+				[TileInteractionStatus.TAPPED]:
+					"bg-blue-500 shadow-lg shadow-blue-500/25",
+				[TileInteractionStatus.MISSED]:
+					"bg-red-500 shadow-lg shadow-red-500/25",
 			},
 		},
 		compoundVariants: [
 			// When inactive tile is missed (clicked white space)
 			{
 				type: "inactive",
-				status: "missed",
+				status: TileInteractionStatus.MISSED,
 				class: "bg-red-500 shadow-lg shadow-red-500/25",
 			},
 		],
 		defaultVariants: {
 			type: "inactive",
-			status: "pending",
+			status: TileInteractionStatus.PENDING,
 		},
 	},
 )
@@ -54,7 +56,6 @@ const arePropsEqual = (prevProps: TileProps, nextProps: TileProps): boolean => {
 	)
 }
 
-// Memoized tile component that only re-renders when props change
 const Tile = memo(
 	({ rowId, columnIndex, yPosition, isActive, status }: TileProps) => {
 		// Development: Log renders to console to verify memoization
@@ -66,14 +67,14 @@ const Tile = memo(
 
 		// Determine tile type and status for CVA
 		const tileType = isActive ? "active" : "inactive"
-		const tileStatus = status as "pending" | "tapped" | "missed"
+		const tileStatus = status as TileInteractionStatus
 
 		// Calculate final status for CVA (handles inactive missed tiles)
 		const finalStatus = isActive
 			? tileStatus
 			: status === TileInteractionStatus.MISSED
-				? "missed"
-				: "pending"
+				? TileInteractionStatus.MISSED
+				: TileInteractionStatus.PENDING
 
 		return (
 			<div

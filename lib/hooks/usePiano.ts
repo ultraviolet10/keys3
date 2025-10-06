@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef } from "react"
 import { audioManager } from "@/lib/audio/AudioManager"
-import { GAME_SPEED, initialTileRows, noteSequence, TILE_HEIGHT } from "@/lib/store/constants"
+import {
+	GAME_SPEED,
+	initialTileRows,
+	noteSequence,
+	TILE_HEIGHT,
+} from "@/lib/store/constants"
 import { usePianoStore } from "@/lib/store/game-store"
 import { GameStatus, TileInteractionStatus, type TileRow } from "@/types"
 
 export const usePiano = () => {
-	// Selectors (avoid re-rendering on unrelated state changes)
 	const lives = usePianoStore((s) => s.lives)
 	const score = usePianoStore((s) => s.score)
 	const gameStatus = usePianoStore((s) => s.gameStatus)

@@ -7,7 +7,6 @@ interface GameInfoProps {
 	gameStatus: GameStatus
 }
 
-// CVA variants for the info bar
 const infoBarVariants = cva(
 	"h-[10vh] flex items-center justify-between px-4 border-t transition-colors duration-200",
 	{
@@ -48,18 +47,21 @@ const statItemVariants = cva(
 )
 
 // CVA variants for stat icons/labels
-const statLabelVariants = cva("text-xs font-medium uppercase tracking-wider font-orange-kid", {
-	variants: {
-		type: {
-			lives: "text-red-400",
-			score: "text-blue-400",
-			status: "text-gray-400",
+const statLabelVariants = cva(
+	"text-xs font-medium uppercase tracking-wider font-orange-kid",
+	{
+		variants: {
+			type: {
+				lives: "text-red-400",
+				score: "text-blue-400",
+				status: "text-gray-400",
+			},
+		},
+		defaultVariants: {
+			type: "lives",
 		},
 	},
-	defaultVariants: {
-		type: "lives",
-	},
-})
+)
 
 /**
  * Bottom bar in the game screen that shows basic game info as the user plays it.
@@ -99,7 +101,9 @@ const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
 					<span className="text-lg">🎯</span>
 					<div className="flex flex-col">
 						<span className={statLabelVariants({ type: "score" })}>Score</span>
-						<span className="text-lg font-bold font-orange-kid">{score.toLocaleString()}</span>
+						<span className="text-lg font-bold font-orange-kid">
+							{score.toLocaleString()}
+						</span>
 					</div>
 				</div>
 			</div>
