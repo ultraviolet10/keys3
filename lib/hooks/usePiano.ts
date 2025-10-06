@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
+import { useFrame } from "@/components/FarcasterProvider"
 import { audioManager } from "@/lib/audio/AudioManager"
 import {
 	GAME_SPEED,
@@ -15,6 +16,9 @@ export const usePiano = () => {
 	const gameStatus = usePianoStore((s) => s.gameStatus)
 	const noteIndex = usePianoStore((s) => s.noteIndex)
 	const tileRows = usePianoStore((s) => s.tileRows)
+
+	// Get haptics from Farcaster frame
+	const { haptics } = useFrame()
 
 	// Animation loop refs
 	const gameStartTimeRef = useRef<number>(0)
@@ -145,23 +149,31 @@ export const usePiano = () => {
 		[tileRows],
 	)
 
-	const handleSuccessfulTap = useCallback((tile: TileRow) => {
-		// Play sequential note based on current state
-		const { noteIndex: ni } = usePianoStore.getState()
-		const currentNote = noteSequence[ni]
-		audioManager.playNote(currentNote)
+	const handleSuccessfulTap = useCallback(
+		(tile: TileRow) => {
+			// Play sequential note based on current state
+			const { noteIndex: ni } = usePianoStore.getState()
+			const currentNote = noteSequence[ni]
+			audioManager.playNote(currentNote)
 
-		// Update tileRows, noteIndex, score atomically
-		usePianoStore.setState((state) => ({
-			tileRows: state.tileRows.map((row) =>
-				row.id === tile.id
-					? { ...row, status: TileInteractionStatus.TAPPED }
-					: row,
-			),
-			noteIndex: (state.noteIndex + 1) % noteSequence.length,
-			score: state.score + 10,
-		}))
-	}, [])
+			// Trigger medium haptic feedback for successful tap
+			if (haptics) {
+				haptics.impactOccurred("medium")
+			}
+
+			// Update tileRows, noteIndex, score atomically
+			usePianoStore.setState((state) => ({
+				tileRows: state.tileRows.map((row) =>
+					row.id === tile.id
+						? { ...row, status: TileInteractionStatus.TAPPED }
+						: row,
+				),
+				noteIndex: (state.noteIndex + 1) % noteSequence.length,
+				score: state.score + 10,
+			}))
+		},
+		[haptics],
+	)
 
 	const handleMissedTap = useCallback(
 		(_column: number, tapY: number) => {
@@ -171,6 +183,11 @@ export const usePiano = () => {
 				const tileBottom = row.y + TILE_HEIGHT
 				return tapY >= tileTop && tapY <= tileBottom
 			})
+
+			// Trigger heavy haptic feedback for wrong tap
+			if (haptics) {
+				haptics.impactOccurred("heavy")
+			}
 
 			// Decrease lives and mark clicked row (if any), possibly set GAMEOVER
 			usePianoStore.setState((state) => {
@@ -190,7 +207,7 @@ export const usePiano = () => {
 				}
 			})
 		},
-		[tileRows],
+		[tileRows, haptics],
 	)
 
 	const handleInteraction = useCallback(
