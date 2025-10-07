@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useRef } from "react"
 import { useFrame } from "@/components/FarcasterProvider"
-import { audioManager } from "@/lib/audio/AudioManager"
+import { unifiedAudioManager } from "@/lib/audio/UnifiedAudioManager"
 import {
+	furElisePhrase1,
+	furElisePhrase2,
+	furElisePhrase3,
+	furElisePhrase4,
+	furElisePhrase5,
+	furElisePhrase6,
+	furElisePhrase7,
+	furElisePhrase8,
+	furEliseSequence,
 	GAME_SPEED,
 	initialTileRows,
-	melodySequence,
 	noteSequence,
 	TILE_HEIGHT,
 } from "@/lib/store/constants"
@@ -18,10 +26,28 @@ export const usePiano = () => {
 	const noteIndex = usePianoStore((s) => s.noteIndex)
 	const melodyIndex = usePianoStore((s) => s.melodyIndex)
 	const melodyCompleted = usePianoStore((s) => s.melodyCompleted)
+	const currentLevel = usePianoStore((s) => s.currentLevel)
+	const completedMelodies = usePianoStore((s) => s.completedMelodies)
+	const audioEngine = usePianoStore((s) => s.audioEngine)
 	const tileRows = usePianoStore((s) => s.tileRows)
 
 	// Get haptics from Farcaster frame
 	const { haptics } = useFrame()
+
+	// Initialize audio engine based on current state
+	useEffect(() => {
+		unifiedAudioManager.switchEngine(audioEngine)
+
+		// Set level on the audio engine if it supports it
+		const engine = unifiedAudioManager.getCurrentEngine()
+		if (
+			engine &&
+			"setLevel" in engine &&
+			typeof engine.setLevel === "function"
+		) {
+			engine.setLevel(currentLevel)
+		}
+	}, [audioEngine, currentLevel])
 
 	// Animation loop refs
 	const gameStartTimeRef = useRef<number>(0)
@@ -156,24 +182,90 @@ export const usePiano = () => {
 		(tile: TileRow) => {
 			const currentState = usePianoStore.getState()
 
+			// Get current phrase based on melody index (8 notes per phrase)
+			const _getCurrentPhrase = () => {
+				const phrases = [
+					furElisePhrase1,
+					furElisePhrase2,
+					furElisePhrase3,
+					furElisePhrase4,
+					furElisePhrase5,
+					furElisePhrase6,
+					furElisePhrase7,
+					furElisePhrase8,
+				]
+				const phraseIndex = Math.floor(currentState.melodyIndex / 8)
+				return phrases[phraseIndex] || furElisePhrase1
+			}
+
 			// Determine which note to play based on melody progress
 			let currentNote: string
 			let newMelodyIndex = currentState.melodyIndex
 			let newNoteIndex = currentState.noteIndex
 			let newMelodyCompleted = currentState.melodyCompleted
 			let newGameStatus = currentState.gameStatus
+			let newCurrentLevel = currentState.currentLevel
+			let newCompletedMelodies = currentState.completedMelodies
+			const newAudioEngine = currentState.audioEngine
 
 			if (
 				!currentState.melodyCompleted &&
-				currentState.melodyIndex < melodySequence.length
+				currentState.melodyIndex < furEliseSequence.length
 			) {
-				// Playing melody sequence
-				currentNote = melodySequence[currentState.melodyIndex]
+				// Playing Für Elise sequence
+				currentNote = furEliseSequence[currentState.melodyIndex]
 				newMelodyIndex = currentState.melodyIndex + 1
 
-				// Check if melody is completed
-				if (newMelodyIndex >= melodySequence.length) {
+				// Check if we completed a phrase (every 8 notes)
+				const completedPhrases = Math.floor(newMelodyIndex / 8)
+				const previousCompletedPhrases = Math.floor(
+					currentState.melodyIndex / 8,
+				)
+
+				if (completedPhrases > previousCompletedPhrases) {
+					// New phrase completed - check for level progression
+					switch (completedPhrases) {
+						case 1:
+							// After phrase 1: Switch to Level 2 (Electric Piano)
+							if (newCurrentLevel === 1) {
+								newCurrentLevel = 2
+								// Immediately update the audio engine level
+								const engine = unifiedAudioManager.getCurrentEngine()
+								if (
+									engine &&
+									"setLevel" in engine &&
+									typeof engine.setLevel === "function"
+								) {
+									engine.setLevel(2)
+								}
+							}
+							break
+						case 2:
+							// After phrase 2: Switch to Level 3 (Reverb + Higher Pitch)
+							if (newCurrentLevel === 2) {
+								newCurrentLevel = 3
+								// Immediately update the audio engine level
+								const engine = unifiedAudioManager.getCurrentEngine()
+								if (
+									engine &&
+									"setLevel" in engine &&
+									typeof engine.setLevel === "function"
+								) {
+									engine.setLevel(3)
+								}
+							}
+							break
+						default:
+							// Continue with current level
+							break
+					}
+				}
+
+				// Check if all 8 phrases are completed (64 notes)
+				if (newMelodyIndex >= furEliseSequence.length) {
 					newMelodyCompleted = true
+					newCompletedMelodies = currentState.completedMelodies + 1
+					// Game completed - all 8 phrases of Für Elise
 					newGameStatus = GameStatus.WON
 				}
 			} else {
@@ -182,7 +274,8 @@ export const usePiano = () => {
 				newNoteIndex = (currentState.noteIndex + 1) % noteSequence.length
 			}
 
-			audioManager.playNote(currentNote)
+			// Play note with current audio engine
+			unifiedAudioManager.playNote(currentNote)
 
 			// Trigger medium haptic feedback for successful tap
 			if (haptics) {
@@ -200,6 +293,9 @@ export const usePiano = () => {
 				noteIndex: newNoteIndex,
 				melodyCompleted: newMelodyCompleted,
 				gameStatus: newGameStatus,
+				currentLevel: newCurrentLevel,
+				completedMelodies: newCompletedMelodies,
+				audioEngine: newAudioEngine,
 				score: state.score + 10,
 			}))
 		},
@@ -296,8 +392,14 @@ export const usePiano = () => {
 			noteIndex: 0,
 			melodyIndex: 0,
 			melodyCompleted: false,
+			currentLevel: 1,
+			completedMelodies: 0,
+			audioEngine: "tone",
 			tileRows: initialTileRows,
 		})
+
+		// Reset audio engine to Tone.js
+		unifiedAudioManager.switchEngine("tone")
 
 		gameStartTimeRef.current = 0
 		currentSpeedRef.current = GAME_SPEED
@@ -315,6 +417,9 @@ export const usePiano = () => {
 		noteIndex,
 		melodyIndex,
 		melodyCompleted,
+		currentLevel,
+		completedMelodies,
+		audioEngine,
 
 		// Game actions
 		resetGame,

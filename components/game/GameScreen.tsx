@@ -41,7 +41,15 @@ const mainContainerVariants = cva(
 
 export function GameScreen() {
 	// Use the piano hook for all game logic
-	const { lives, score, gameStatus, tileRows, handleInteraction } = usePiano()
+	const {
+		lives,
+		score,
+		gameStatus,
+		tileRows,
+		currentLevel,
+		audioEngine,
+		handleInteraction,
+	} = usePiano()
 
 	// Only need gameAreaRef for DOM reference
 	const gameAreaRef = useRef<HTMLElement>(null)
@@ -76,7 +84,13 @@ export function GameScreen() {
 				)}
 			</main>
 
-			<GameInfo lives={lives} score={score} gameStatus={gameStatus} />
+			<GameInfo
+				lives={lives}
+				score={score}
+				gameStatus={gameStatus}
+				currentLevel={currentLevel}
+				audioEngine={audioEngine}
+			/>
 		</div>
 	)
 }

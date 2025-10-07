@@ -1,6 +1,7 @@
 import { notes } from "../store/constants"
+import type { AudioEngineInterface } from "./AudioEngineInterface"
 
-export class AudioManager {
+export class AudioManager implements AudioEngineInterface {
 	private audioCache: Map<string, HTMLAudioElement> = new Map()
 	private isEnabled: boolean = true
 

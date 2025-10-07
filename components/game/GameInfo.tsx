@@ -5,6 +5,8 @@ interface GameInfoProps {
 	lives: number
 	score: number
 	gameStatus: GameStatus
+	currentLevel: number
+	audioEngine: "static" | "tone"
 }
 
 const infoBarVariants = cva(
@@ -33,6 +35,8 @@ const statItemVariants = cva(
 				lives: "text-red-300",
 				score: "text-blue-300",
 				status: "text-gray-300",
+				level: "text-purple-300",
+				engine: "text-green-300",
 			},
 			highlight: {
 				true: "text-white font-bold font-orange-kid",
@@ -55,6 +59,8 @@ const statLabelVariants = cva(
 				lives: "text-red-400",
 				score: "text-blue-400",
 				status: "text-gray-400",
+				level: "text-purple-400",
+				engine: "text-green-400",
 			},
 		},
 		defaultVariants: {
@@ -66,7 +72,13 @@ const statLabelVariants = cva(
 /**
  * Bottom bar in the game screen that shows basic game info as the user plays it.
  */
-const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
+const GameInfo = ({
+	lives,
+	score,
+	gameStatus,
+	currentLevel,
+	audioEngine,
+}: GameInfoProps) => {
 	const getStatusKey = (
 		status: GameStatus,
 	): "playing" | "paused" | "gameover" | "idle" => {
@@ -106,14 +118,40 @@ const GameInfo = ({ lives, score, gameStatus }: GameInfoProps) => {
 						</span>
 					</div>
 				</div>
+
+				{/* Level */}
+				<div className={statItemVariants({ type: "level" })}>
+					<span className="text-lg">🎼</span>
+					<div className="flex flex-col">
+						<span className={statLabelVariants({ type: "level" })}>Level</span>
+						<span className="text-lg font-bold font-orange-kid">
+							{currentLevel}
+						</span>
+					</div>
+				</div>
 			</div>
 
-			{/* Game Status */}
-			<div className={statItemVariants({ type: "status" })}>
-				<div className="text-right">
-					<div className={statLabelVariants({ type: "status" })}>Status</div>
-					<div className="text-sm font-semibold font-orange-kid capitalize">
-						{gameStatus.toLowerCase()}
+			<div className="flex items-center space-x-4">
+				{/* Audio Engine */}
+				<div className={statItemVariants({ type: "engine" })}>
+					<span className="text-lg">
+						{audioEngine === "tone" ? "🎹" : "🎵"}
+					</span>
+					<div className="flex flex-col text-right">
+						<span className={statLabelVariants({ type: "engine" })}>Audio</span>
+						<span className="text-sm font-semibold font-orange-kid capitalize">
+							{audioEngine === "tone" ? "Synth" : "Classic"}
+						</span>
+					</div>
+				</div>
+
+				{/* Game Status */}
+				<div className={statItemVariants({ type: "status" })}>
+					<div className="text-right">
+						<div className={statLabelVariants({ type: "status" })}>Status</div>
+						<div className="text-sm font-semibold font-orange-kid capitalize">
+							{gameStatus.toLowerCase()}
+						</div>
 					</div>
 				</div>
 			</div>
