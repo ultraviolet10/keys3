@@ -3,9 +3,7 @@
 import { cva } from "class-variance-authority"
 import { useRef } from "react"
 import { usePiano } from "@/lib/hooks/usePiano"
-import GameInfo from "./GameInfo"
-import PerformanceMonitor from "./PerformanceMonitor"
-import Tile from "./Tile"
+import { GameInfo, Tile, PerformanceMonitor } from "@/components/game"
 
 // CVA variants for game container
 const gameContainerVariants = cva(
@@ -40,7 +38,6 @@ const mainContainerVariants = cva(
 )
 
 export function GameScreen() {
-	// Use the piano hook for all game logic
 	const {
 		lives,
 		score,
@@ -51,7 +48,6 @@ export function GameScreen() {
 		handleInteraction,
 	} = usePiano()
 
-	// Only need gameAreaRef for DOM reference
 	const gameAreaRef = useRef<HTMLElement>(null)
 
 	return (

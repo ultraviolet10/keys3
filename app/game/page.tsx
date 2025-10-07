@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { GameScreen } from "@/components/Game"
+import { GameScreen } from "@/components/game"
 import { APP_URL } from "@/lib/constants"
 
 const frame = {

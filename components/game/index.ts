@@ -1,4 +1,5 @@
 export { default as GameInfo } from "./GameInfo"
 export { GameScreen } from "./GameScreen"
+export { default as PerformanceMonitor } from "./PerformanceMonitor"
 export type { TileProps } from "./Tile"
 export { default as Tile } from "./Tile"
