@@ -4,7 +4,7 @@ import { useFrame } from "@/components/FarcasterProvider"
 import { SafeAreaContainer } from "@/components/SafeAreaContainer"
 import Welcome from "../Home/Welcome"
 
-export default function Home() {
+export default function App() {
 	const { context, isLoading, isSDKLoaded } = useFrame()
 
 	if (isLoading) {
