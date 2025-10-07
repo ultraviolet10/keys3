@@ -2,8 +2,8 @@
 
 import { cva } from "class-variance-authority"
 import { useRef } from "react"
+import { GameInfo, PerformanceMonitor, Tile } from "@/components/game"
 import { usePiano } from "@/lib/hooks/usePiano"
-import { GameInfo, Tile, PerformanceMonitor } from "@/components/game"
 
 // CVA variants for game container
 const gameContainerVariants = cva(
